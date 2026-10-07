@@ -44,9 +44,24 @@ class MpazProViewModel : ViewModel() {
      * pantalla). Si no, dejar _errorLogin con un mensaje y devolver false.
      * Pendiente con el CITT: cómo se autentica el estudiante.
      */
-    fun login(usuario: String, clave: String): Boolean {
+    /**fun login(usuario: String, clave: String): Boolean {
         _errorLogin.value = "Login sin implementar — ver TODO(equipo) en MpazProViewModel.login()."
         return false
+    }*/
+    // validacion de usuario a traves del mockdata
+    fun login(usuario: String, clave: String): Boolean {
+        _errorLogin.value = null
+        val usuarioEncontrado = MockData.usuarios.find {
+            it.usuario.equals(usuario, ignoreCase = true) && it.clave == clave
+        }
+
+        return if (usuarioEncontrado != null) {
+            _usuarioActivo.value = usuarioEncontrado
+            true
+        } else {
+            _errorLogin.value = "Credenciales incorrectas. Verifique usuario y contraseña."
+            false
+        }
     }
 
     /**
