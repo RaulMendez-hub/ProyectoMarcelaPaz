@@ -29,30 +29,19 @@ import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
-/**
- * Evaluación final del contenido. RF: "responder la evaluación final dentro del número de
- * intentos permitidos". Regla de negocio: el máximo de intentos (definido por el docente) debe
- * respetarse estrictamente.
- *
- * TODO(equipo):
- *  - evaluacionFinalDe() hoy devuelve TODAS las actividades; debe devolver solo las preguntas
- *    de la evaluación final del contenido.
- *  - intentosRestantes() hoy devuelve null (sin calcular); con 0 intentos el botón Enviar ya
- *    queda deshabilitado.
- *  - enviarEvaluacion() todavía no registra el intento.
- */
 @Composable
 fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
     val usuario by viewModel.usuarioActivo.collectAsState()
     val estudianteId = usuario?.id.orEmpty()
+    val contenido = viewModel.contenidoPorId(contenidoId)
     val preguntas = remember(contenidoId) { viewModel.evaluacionFinalDe(contenidoId) }
     val intentos = viewModel.intentosRestantes(estudianteId, contenidoId.orEmpty())
 
     // Respuestas elegidas: id de la pregunta -> posición de la alternativa
     var respuestas by remember { mutableStateOf(mapOf<String, Int>()) }
 
-    Scaffold(topBar = { BarraSuperior("Evaluación final", navController) }) { padding ->
+    Scaffold(topBar = { BarraSuperior(contenido?.asignatura?.etiqueta ?: "Evaluación final", navController) }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -65,6 +54,34 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
                 if (intentos == null) "Intentos restantes: (pendiente de implementar)" else "Intentos restantes: $intentos",
                 style = MaterialTheme.typography.titleMedium
             )
+
+            if (preguntas.isEmpty()) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = contenido?.unidad ?: "Sin contenido",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            text = "Todavía no hay evaluación final creada para esta asignatura.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    onClick = { navController.popBackStack() }
+                ) {
+                    Text("Volver a desafíos", style = MaterialTheme.typography.titleMedium)
+                }
+                return@Column
+            }
 
             preguntas.forEachIndexed { numero, pregunta ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -87,7 +104,7 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = respuestas.size == preguntas.size && preguntas.isNotEmpty() && intentos != 0,
+                enabled = respuestas.size == preguntas.size && preguntas.isNotEmpty() && (intentos == null || intentos > 0),
                 onClick = {
                     viewModel.enviarEvaluacion(estudianteId, contenidoId.orEmpty(), respuestas)
                     navController.navigate(Rutas.ESTUDIANTE_REVISION)

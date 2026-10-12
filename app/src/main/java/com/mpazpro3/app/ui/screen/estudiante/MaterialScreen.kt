@@ -28,16 +28,6 @@ import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
-/**
- * Material de estudio del contenido elegido: explicación, imagen, audio de apoyo, ejemplo e
- * instrucciones. RF: "consultar el material asignado".
- *
- * TODO(equipo):
- *  - Mostrar la imagen real del recurso (hoy es un recuadro de ejemplo).
- *  - Reproducir el audio de apoyo (por ejemplo con MediaPlayer y un archivo en res/raw).
- *    RNF: el audio complementa la lectura, no la reemplaza.
- *  - confirmarMaterialRevisado() todavía no guarda el avance.
- */
 @Composable
 fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
@@ -55,38 +45,58 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (recursos.isEmpty()) {
-                Text("Todavía no hay material para este contenido.", style = MaterialTheme.typography.bodyLarge)
-            }
-
-            recursos.forEach { recurso ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(recurso.titulo, style = MaterialTheme.typography.headlineSmall)
-                        Text(recurso.explicacion, style = MaterialTheme.typography.bodyLarge)
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = contenido?.unidad ?: "Material de estudio",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            text = contenido?.asignatura?.etiqueta ?: "Información no disponible.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            } else {
+                recursos.forEach { recurso ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(recurso.titulo, style = MaterialTheme.typography.headlineSmall)
+                            Text(recurso.explicacion, style = MaterialTheme.typography.bodyLarge)
 
-                        if (recurso.descripcionImagen != null) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(140.dp)
-                                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(recurso.descripcionImagen, style = MaterialTheme.typography.bodyMedium)
+                            if (recurso.descripcionImagen != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(140.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.secondaryContainer,
+                                            RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(recurso.descripcionImagen, style = MaterialTheme.typography.bodyMedium)
+                                }
                             }
-                        }
 
-                        if (recurso.audioDisponible) {
-                            OutlinedButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = { /* TODO(equipo): reproducir el audio de apoyo */ }
-                            ) { Text("Escuchar audio de apoyo") }
-                        }
+                            if (recurso.audioDisponible) {
+                                OutlinedButton(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { /* TODO(equipo): reproducir el audio de apoyo */ }
+                                ) { Text("Escuchar audio de apoyo") }
+                            }
 
-                        Text("Ejemplo", style = MaterialTheme.typography.titleMedium)
-                        Text(recurso.ejemplo, style = MaterialTheme.typography.bodyLarge)
-                        Text("Instrucciones", style = MaterialTheme.typography.titleMedium)
-                        Text(recurso.instrucciones, style = MaterialTheme.typography.bodyLarge)
+                            Text("Ejemplo", style = MaterialTheme.typography.titleMedium)
+                            Text(recurso.ejemplo, style = MaterialTheme.typography.bodyLarge)
+                            Text("Instrucciones", style = MaterialTheme.typography.titleMedium)
+                            Text(recurso.instrucciones, style = MaterialTheme.typography.bodyLarge)
+                        }
                     }
                 }
             }

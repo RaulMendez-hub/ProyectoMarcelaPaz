@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -28,26 +29,18 @@ import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
-/**
- * Desafíos de práctica, uno a la vez, antes de la evaluación final. RF: "desarrollar
- * actividades y desafíos de dificultad progresiva".
- *
- * TODO(equipo):
- *  - desafiosDe() hoy devuelve TODAS las actividades (incluida la evaluación final) sin ordenar.
- *  - responderDesafio() hoy devuelve null: implementar el registro de la respuesta y devolver
- *    true/false para mostrar "¡Correcto!" o "Inténtalo de nuevo".
- */
 @Composable
 fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
     val usuario by viewModel.usuarioActivo.collectAsState()
+    val contenido = viewModel.contenidoPorId(contenidoId)
     val desafios = remember(contenidoId) { viewModel.desafiosDe(contenidoId) }
 
     var indice by remember { mutableIntStateOf(0) }
     var resultado by remember { mutableStateOf<Boolean?>(null) }
     var respondido by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { BarraSuperior("Desafíos", navController) }) { padding ->
+    Scaffold(topBar = { BarraSuperior(contenido?.asignatura?.etiqueta ?: "Desafíos", navController) }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -57,13 +50,39 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (desafios.isEmpty()) {
-                Text("No hay desafíos para este contenido.", style = MaterialTheme.typography.bodyLarge)
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = contenido?.unidad ?: "Sin contenido",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            text = "Todavía no hay ejercicios creados para esta asignatura.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    onClick = { navController.popBackStack() }
+                ) {
+                    Text("Volver al material", style = MaterialTheme.typography.titleMedium)
+                }
                 return@Column
             }
 
             val actual = desafios[indice.coerceIn(0, desafios.lastIndex)]
 
-            Text("Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}", style = MaterialTheme.typography.labelLarge)
+            Text(
+                "Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}",
+                style = MaterialTheme.typography.labelLarge
+            )
             Text(actual.enunciado, style = MaterialTheme.typography.headlineSmall)
 
             actual.alternativas.forEachIndexed { posicion, alternativa ->
@@ -84,7 +103,11 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
                     false -> "Inténtalo de nuevo."
                     null -> "(Retroalimentación pendiente: implementar responderDesafio())"
                 }
-                Text(texto, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+                Text(
+                    texto,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
