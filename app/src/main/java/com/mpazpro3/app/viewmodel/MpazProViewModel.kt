@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.text.SimpleDateFormat
+import java.util.Locale
+import com.mpazpro3.app.model.EstadoValidacion
+import java.util.Date
 
 
 
@@ -226,27 +230,24 @@ class MpazProViewModel : ViewModel() {
     //}
 
     fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int) {
-        val contenidosAprobados = _contenidos.value.filter { it.id in contenidoIds && it.estado == EstadoAprobacion.APROBADO }
+        if (curso.isBlank() || contenidoIds.isEmpty() || maxIntentos < 1) return
 
-        if (contenidosAprobados.size != contenidoIds.size) {
-            // Regla de negocio: Bloquear si existen contenidos no autorizados en la petición.
-            return
+        val aprobados = _contenidos.value
+            .filter { it.id in contenidoIds && it.estado == EstadoAprobacion.APROBADO }
+        if (aprobados.size != contenidoIds.distinct().size) return // hay contenidos no autorizados
+
+        _asignaciones.update { actuales ->
+            val sinRepetidos = actuales.filterNot { it.curso == curso && it.contenidoId in contenidoIds }
+            sinRepetidos + aprobados.map {
+                Asignacion(
+                    id = "AS-$curso-${it.id}",
+                    curso = curso,
+                    contenidoId = it.id,
+                    maxIntentosEvaluacion = maxIntentos
+                )
+            }
         }
-
-        val nuevasAsignaciones = contenidosAprobados.map { contenido ->
-            Asignacion(
-                id = "ASIG-${System.currentTimeMillis()}-${contenido.id}",
-                curso = curso,
-                contenidoId = contenido.id,
-                maxIntentosEvaluacion = maxIntentos
-            )
-        }
-
-        _asignaciones.value = (_asignaciones.value + nuevasAsignaciones).toMutableList()
     }
-
-
-
 
     /** TODO(equipo): devolver solo las asignaciones del curso indicado. Hoy devuelve todas. */
     //fun asignacionesDelCurso(curso: String): List<Asignacion> = _asignaciones.value
@@ -257,7 +258,21 @@ class MpazProViewModel : ViewModel() {
      * TODO(equipo): calcular el avance del estudiante (0.0 a 1.0) a partir de sus
      * SeguimientoAvance. RF: "revisar los resultados de sus estudiantes". Hoy devuelve 0.
      */
-    fun progresoGeneral(estudianteId: String): Float = 0f
+    //fun progresoGeneral(estudianteId: String): Float = 0f
+
+    fun progresoGeneral(estudianteId: String): Float {
+        val asignados = contenidosAsignados(estudianteId)
+        if (asignados.isEmpty()) return 0f
+        return asignados.map { progreso(estudianteId, it.id) }.average().toFloat()
+    }
+
+    private val _resultadosCsv = MutableStateFlow<String?>(null)
+    /** CSV listo para compartir; la pantalla lo comparte y luego llama a resultadosCsvConsumido(). */
+    val resultadosCsv: StateFlow<String?> = _resultadosCsv.asStateFlow()
+
+    fun resultadosCsvConsumido() {
+        _resultadosCsv.value = null
+    }
 
 
 
@@ -267,9 +282,21 @@ class MpazProViewModel : ViewModel() {
      * TODO(equipo): exportar los resultados del curso (por ejemplo a un archivo CSV o PDF que
      * se pueda compartir). RF: "revisar, descargar y validar los resultados". Hoy no hace nada.
      */
-    fun descargarResultados(curso: String) {
+    //fun descargarResultados(curso: String) {
         // Sin implementar todavía.
+    //}
+
+    fun descargarResultados(curso: String) {
+        fun csv(texto: String) = "\"" + texto.replace("\"", "\"\"") + "\""
+        val sb = StringBuilder("Curso,EstudianteID,Nombre,AvancePorcentaje,RespuestasCorrectas,RespuestasTotales\n")
+        _estudiantes.value.filter { it.curso == curso }.forEach { e ->
+            val (correctas, total) = resumenRespuestas(e.id)
+            val avance = (progresoGeneral(e.id) * 100).toInt()
+            sb.append("${csv(e.curso)},${csv(e.id)},${csv(e.nombreFicticio)},$avance,$correctas,$total\n")
+        }
+        _resultadosCsv.value = sb.toString()
     }
+
 
 
 
@@ -284,16 +311,57 @@ class MpazProViewModel : ViewModel() {
      * reforzar) a partir de sus respuestas, en estado BORRADOR. Restricciones del caso: sin
      * diagnósticos ni consecuencias académicas automáticas. Hoy no hace nada.
      */
-    fun generarInforme(estudianteId: String) {
+    //fun generarInforme(estudianteId: String) {
         // Sin implementar todavía.
+    //}
+
+    fun generarInforme(estudianteId: String) {
+        val asignados = contenidosAsignados(estudianteId)
+        val conDatos = asignados.map { it to respuestasDe(estudianteId, it.id) }.filter { it.second.isNotEmpty() }
+
+        val correctas = conDatos.sumOf { (_, r) -> r.count { it.esCorrecta } }
+        val total = conDatos.sumOf { (_, r) -> r.size }
+        val rendimiento = if (total == 0) {
+            "Aún no hay respuestas registradas para este estudiante."
+        } else {
+            "Respondió correctamente $correctas de $total preguntas (${correctas * 100 / total}%) " +
+                    "en ${conDatos.size} contenido(s) trabajado(s)."
+        }
+
+        val fortalezas = conDatos
+            .filter { (_, r) -> r.count { it.esCorrecta } * 100 / r.size >= 70 }
+            .map { (c, _) -> "Buen manejo de: ${c.unidad}" }
+        val aReforzar = conDatos
+            .filter { (_, r) -> r.count { it.esCorrecta } * 100 / r.size < 70 }
+            .map { (c, _) -> "Reforzar: ${c.objetivoAprendizaje}" } +
+                asignados.filter { a -> conDatos.none { it.first.id == a.id } }
+                    .map { "Aún sin actividades realizadas en: ${it.unidad}" }
+
+        val informe = InformeDocente(
+            id = "INF-$estudianteId",
+            estudianteId = estudianteId,
+            contenidoId = (conDatos.firstOrNull()?.first ?: asignados.firstOrNull())?.id.orEmpty(),
+            rendimiento = rendimiento,
+            fortalezas = fortalezas.ifEmpty { listOf("Sin fortalezas registradas todavía.") },
+            aspectosAReforzar = aReforzar.ifEmpty { listOf("Sin aspectos a reforzar por ahora.") },
+            fecha = SimpleDateFormat("dd-MM-yyyy", Locale("es", "CL")).format(Date()),
+            estado = EstadoValidacion.BORRADOR
+        )
+        _informes.update { lista -> lista.filterNot { it.estudianteId == estudianteId } + informe }
     }
 
     /**
      * TODO(equipo): pasar el informe de BORRADOR a VALIDADO. RF: "el informe debe quedar
      * sujeto a validación docente antes de considerarse definitivo". Hoy no hace nada.
      */
-    fun validarInforme(informeId: String) {
+    //fun validarInforme(informeId: String) {
         // Sin implementar todavía.
+    //}
+
+    fun validarInforme(informeId: String) {
+        _informes.update { lista ->
+            lista.map { if (it.id == informeId) it.copy(estado = EstadoValidacion.VALIDADO) else it }
+        }
     }
 
     // =====================================================================
