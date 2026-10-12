@@ -17,6 +17,9 @@ import com.mpazpro3.app.model.Usuario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+
 
 /**
  * ViewModel único, compartido por todas las pantallas (se crea una sola vez en AppNavigation).
@@ -44,11 +47,14 @@ class MpazProViewModel : ViewModel() {
      * pantalla). Si no, dejar _errorLogin con un mensaje y devolver false.
      * Pendiente con el CITT: cómo se autentica el estudiante.
      */
+
+    //MODIFICACION
+
     /**fun login(usuario: String, clave: String): Boolean {
         _errorLogin.value = "Login sin implementar — ver TODO(equipo) en MpazProViewModel.login()."
         return false
     }*/
-    // validacion de usuario a traves del mockdata
+    // VALIDACION, A TRAVES DEL MOCKDATA
     fun login(usuario: String, clave: String): Boolean {
         _errorLogin.value = null
         val usuarioEncontrado = MockData.usuarios.find {
@@ -105,6 +111,8 @@ class MpazProViewModel : ViewModel() {
     private val _contenidoSeleccionadoId = MutableStateFlow<String?>(null)
     val contenidoSeleccionadoId: StateFlow<String?> = _contenidoSeleccionadoId.asStateFlow()
 
+
+
     private val _estudianteSeleccionadoId = MutableStateFlow<String?>(null)
     val estudianteSeleccionadoId: StateFlow<String?> = _estudianteSeleccionadoId.asStateFlow()
 
@@ -124,6 +132,48 @@ class MpazProViewModel : ViewModel() {
         _recursos.value.filter { it.contenidoId == contenidoId }
 
     fun actividadPorId(id: String): Actividad? = _actividades.value.find { it.id == id }
+
+    // =====================================================================
+    // Auxiliares internos (no los usan las pantallas)
+    // =====================================================================
+
+    private fun cursoDe(estudianteId: String): String? =
+        _estudiantes.value.find { it.id == estudianteId }?.curso
+
+    private fun seguimientoDe(estudianteId: String, contenidoId: String): SeguimientoAvance? =
+        _seguimientos.value.find { it.estudianteId == estudianteId && it.contenidoId == contenidoId }
+
+    /** Crea el seguimiento si no existe y aplica el cambio de forma segura. */
+    private fun actualizarSeguimiento(
+        estudianteId: String,
+        contenidoId: String,
+        cambio: (SeguimientoAvance) -> SeguimientoAvance
+    ) {
+        _seguimientos.update { lista ->
+            val actual = lista.find { it.estudianteId == estudianteId && it.contenidoId == contenidoId }
+            if (actual == null) lista + cambio(SeguimientoAvance(estudianteId, contenidoId))
+            else lista.map { if (it === actual) cambio(it) else it }
+        }
+    }
+
+    private fun asignacionDe(estudianteId: String, contenidoId: String): Asignacion? {
+        val curso = cursoDe(estudianteId) ?: return null
+        return _asignaciones.value.find { it.curso == curso && it.contenidoId == contenidoId }
+    }
+
+    /** Contenidos APROBADOS y asignados al curso del estudiante. */
+    private fun contenidosAsignados(estudianteId: String): List<Contenido> {
+        val curso = cursoDe(estudianteId) ?: return emptyList()
+        val ids = _asignaciones.value.filter { it.curso == curso }.map { it.contenidoId }.toSet()
+        return _contenidos.value.filter { it.id in ids && it.estado == EstadoAprobacion.APROBADO }
+    }
+
+    /** Pares (correctas, total) de las respuestas vigentes del estudiante en todos sus contenidos. */
+    private fun resumenRespuestas(estudianteId: String): Pair<Int, Int> {
+        val respuestas = contenidosAsignados(estudianteId).flatMap { respuestasDe(estudianteId, it.id) }
+        return respuestas.count { it.esCorrecta } to respuestas.size
+    }
+
 
     // =====================================================================
     // Módulo "Autorización de contenidos (UTP)"
@@ -156,7 +206,14 @@ class MpazProViewModel : ViewModel() {
      * TODO(equipo): devolver SOLO los contenidos APROBADOS por UTP (regla de negocio: un
      * contenido no autorizado no puede asignarse). Hoy devuelve todos.
      */
-    fun contenidosDisponiblesParaAsignar(): List<Contenido> = _contenidos.value
+
+    //MODIFICADO
+    //fun contenidosDisponiblesParaAsignar(): List<Contenido> = _contenidos.value
+
+    fun contenidosDisponiblesParaAsignar(): List<Contenido> {
+        return _contenidos.value.filter { it.estado == EstadoAprobacion.APROBADO }
+    }
+
 
     /**
      * TODO(equipo): crear las asignaciones del curso para los contenidos elegidos, con el máximo
@@ -164,18 +221,47 @@ class MpazProViewModel : ViewModel() {
      * contenidos y desafíos a su curso", "definir el número máximo de intentos". Validar que
      * todos los contenidos estén aprobados. Hoy no hace nada.
      */
+   //fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int) {
+         //Sin implementar todavía.
+    //}
+
     fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int) {
-        // Sin implementar todavía.
+        val contenidosAprobados = _contenidos.value.filter { it.id in contenidoIds && it.estado == EstadoAprobacion.APROBADO }
+
+        if (contenidosAprobados.size != contenidoIds.size) {
+            // Regla de negocio: Bloquear si existen contenidos no autorizados en la petición.
+            return
+        }
+
+        val nuevasAsignaciones = contenidosAprobados.map { contenido ->
+            Asignacion(
+                id = "ASIG-${System.currentTimeMillis()}-${contenido.id}",
+                curso = curso,
+                contenidoId = contenido.id,
+                maxIntentosEvaluacion = maxIntentos
+            )
+        }
+
+        _asignaciones.value = (_asignaciones.value + nuevasAsignaciones).toMutableList()
     }
 
+
+
+
     /** TODO(equipo): devolver solo las asignaciones del curso indicado. Hoy devuelve todas. */
-    fun asignacionesDelCurso(curso: String): List<Asignacion> = _asignaciones.value
+    //fun asignacionesDelCurso(curso: String): List<Asignacion> = _asignaciones.value
+    fun asignacionesDelCurso(curso: String): List<Asignacion> =
+        _asignaciones.value.filter { it.curso == curso }
 
     /**
      * TODO(equipo): calcular el avance del estudiante (0.0 a 1.0) a partir de sus
      * SeguimientoAvance. RF: "revisar los resultados de sus estudiantes". Hoy devuelve 0.
      */
     fun progresoGeneral(estudianteId: String): Float = 0f
+
+
+
+
 
     /**
      * TODO(equipo): exportar los resultados del curso (por ejemplo a un archivo CSV o PDF que
@@ -184,6 +270,8 @@ class MpazProViewModel : ViewModel() {
     fun descargarResultados(curso: String) {
         // Sin implementar todavía.
     }
+
+
 
     // =====================================================================
     // Módulo "Informe pedagógico"

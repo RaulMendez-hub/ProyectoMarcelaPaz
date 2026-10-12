@@ -51,7 +51,7 @@ object MockData {
             id = "C3", asignatura = Asignatura.CIENCIAS_NATURALES, unidad = "Unidad de ejemplo - Seres vivos",
             objetivoAprendizaje = "Observar y describir necesidades básicas de los seres vivos.",
             codigoOA = "OA (por confirmar)", ejeCurricular = "Ciencias de la vida",
-            recursoReferencia = "Currículum Nacional - 3° básico", estado = EstadoAprobacion.PENDIENTE
+            recursoReferencia = "Currículum Nacional - 3° básico", estado = EstadoAprobacion.APROBADO
         ),
         Contenido(
             id = "C4", asignatura = Asignatura.HISTORIA, unidad = "Unidad de ejemplo - Ubicación espacial",

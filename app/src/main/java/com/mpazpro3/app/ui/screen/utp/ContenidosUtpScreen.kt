@@ -46,6 +46,7 @@ fun ContenidosUtpScreen(
     var estado by remember { mutableStateOf<EstadoAprobacion?>(null) }
     val lista = remember(todos, asignatura, estado) { viewModel.contenidosFiltrados(asignatura, estado) }
 
+
     Scaffold(topBar = { BarraSuperior("Autorización de contenidos", navController, onCerrarSesion) }) { padding ->
         Column(
             modifier = Modifier
