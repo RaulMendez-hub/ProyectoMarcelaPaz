@@ -46,6 +46,7 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
     val usuario by viewModel.usuarioActivo.collectAsState()
     val estudianteId = usuario?.id.orEmpty()
+    val seguimientos by viewModel.seguimientos.collectAsState() // recompone al cambiar los intentos
     val preguntas = remember(contenidoId) { viewModel.evaluacionFinalDe(contenidoId) }
     val intentos = viewModel.intentosRestantes(estudianteId, contenidoId.orEmpty())
 

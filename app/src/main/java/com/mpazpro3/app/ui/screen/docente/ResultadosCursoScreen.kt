@@ -1,5 +1,6 @@
 package com.mpazpro3.app.ui.screen.docente
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,9 +16,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.mpazpro3.app.navigation.Rutas
@@ -36,6 +39,22 @@ fun ResultadosCursoScreen(navController: NavHostController, viewModel: MpazProVi
     val usuario by viewModel.usuarioActivo.collectAsState()
     val estudiantes by viewModel.estudiantes.collectAsState()
     val curso = usuario?.curso.orEmpty()
+    val seguimientos by viewModel.seguimientos.collectAsState() // recompone al cambiar el avance
+    val csv by viewModel.resultadosCsv.collectAsState()
+    val context = LocalContext.current
+
+    // Comparte el CSV generado (Gmail, Drive, WhatsApp, etc.)
+    LaunchedEffect(csv) {
+        csv?.let {
+            val envio = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_SUBJECT, "Resultados $curso")
+                putExtra(Intent.EXTRA_TEXT, it)
+            }
+            context.startActivity(Intent.createChooser(envio, "Compartir resultados"))
+            viewModel.resultadosCsvConsumido()
+        }
+    }
 
     Scaffold(topBar = { BarraSuperior("Resultados del curso", navController) }) { padding ->
         Column(
