@@ -89,7 +89,7 @@ fun PlanificacionDocenteScreen(navController: NavHostController, viewModel: Mpaz
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedButton(onClick = { if (maxIntentos > 1) maxIntentos-- }) { Text("−") }
                 Text("$maxIntentos", style = MaterialTheme.typography.headlineSmall)
-                OutlinedButton(onClick = { if (maxIntentos < 10) maxIntentos++ }) { Text("+") }
+                OutlinedButton(onClick = { if (maxIntentos < 3) maxIntentos++ }) { Text("+") }
             }
 
             mensaje?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
