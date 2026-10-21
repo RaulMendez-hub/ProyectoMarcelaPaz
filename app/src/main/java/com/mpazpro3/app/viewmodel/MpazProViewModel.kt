@@ -200,8 +200,6 @@ class MpazProViewModel : ViewModel() {
      * (no se duplica). Si alguno no está aprobado, no se asigna ninguno.
      */
     fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int) {
-        if (curso.isBlank() || contenidoIds.isEmpty() || maxIntentos < 1) return
-
         val aprobados = _contenidos.value
             .filter { it.id in contenidoIds && it.estado == EstadoAprobacion.APROBADO }
         if (aprobados.size != contenidoIds.distinct().size) return // hay contenidos no autorizados

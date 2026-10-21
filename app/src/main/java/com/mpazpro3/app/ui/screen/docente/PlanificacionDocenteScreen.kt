@@ -99,7 +99,7 @@ fun PlanificacionDocenteScreen(navController: NavHostController, viewModel: Mpaz
                 enabled = seleccionados.isNotEmpty(),
                 onClick = {
                     viewModel.asignarAlCurso(usuario?.curso.orEmpty(), seleccionados.toList(), maxIntentos)
-                    mensaje = "Asignación enviada (se verá en el panel cuando asignarAlCurso() esté implementada)."
+                    mensaje = "Asignación enviada."
                     seleccionados = emptySet()
                 }
             ) { Text("3. Asignar a mi curso") }
