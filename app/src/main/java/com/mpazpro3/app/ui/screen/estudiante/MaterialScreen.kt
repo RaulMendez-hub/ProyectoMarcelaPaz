@@ -45,21 +45,7 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (recursos.isEmpty()) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = contenido?.unidad ?: "Material de estudio",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                        Text(
-                            text = contenido?.asignatura?.etiqueta ?: "Información no disponible.",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
+                Text("Todavía no hay material para este contenido.")
             } else {
                 recursos.forEach { recurso ->
                     Card(modifier = Modifier.fillMaxWidth()) {
@@ -81,7 +67,10 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(recurso.descripcionImagen, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        recurso.descripcionImagen,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                             }
 
@@ -100,7 +89,6 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
                     }
                 }
             }
-
             Button(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -40,7 +39,7 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
     var resultado by remember { mutableStateOf<Boolean?>(null) }
     var respondido by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { BarraSuperior(contenido?.asignatura?.etiqueta ?: "Desafíos", navController) }) { padding ->
+    Scaffold(topBar = { BarraSuperior("Desafíos", navController) }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -50,39 +49,18 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (desafios.isEmpty()) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = contenido?.unidad ?: "Sin contenido",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                        Text(
-                            text = "Todavía no hay ejercicios creados para esta asignatura.",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-
+                Text("No hay desafíos para este contenido.", style = MaterialTheme.typography.bodyLarge)
                 Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
                     onClick = { navController.popBackStack() }
                 ) {
-                    Text("Volver al material", style = MaterialTheme.typography.titleMedium)
+                    Text("Volver al material")
                 }
                 return@Column
             }
 
             val actual = desafios[indice.coerceIn(0, desafios.lastIndex)]
 
-            Text(
-                "Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Text("Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}", style = MaterialTheme.typography.labelLarge)
             Text(actual.enunciado, style = MaterialTheme.typography.headlineSmall)
 
             actual.alternativas.forEachIndexed { posicion, alternativa ->
