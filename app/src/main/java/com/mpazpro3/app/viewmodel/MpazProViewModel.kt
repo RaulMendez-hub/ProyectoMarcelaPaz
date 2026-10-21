@@ -176,14 +176,30 @@ class MpazProViewModel : ViewModel() {
         }
     }
 
-    /** UTP autoriza el contenido y deja registrada su observación. */
+    /** RF-01: Aprobar contenido desde UTP */
     fun aprobarContenido(contenidoId: String, observacion: String) {
-        cambiarEstado(contenidoId, EstadoAprobacion.APROBADO, observacion)
+        cambiarEstado(
+            contenidoId,
+            EstadoAprobacion.APROBADO,
+            observacion.trim()
+        )
     }
 
-    /** UTP rechaza el contenido y deja registrada su observación. */
+    /** RF-01: Rechazar contenido desde UTP */
     fun rechazarContenido(contenidoId: String, observacion: String) {
-        cambiarEstado(contenidoId, EstadoAprobacion.RECHAZADO, observacion)
+
+        val motivo = observacion.trim()
+
+        // No se permite rechazar sin indicar el motivo.
+        if (motivo.isBlank()) {
+            return
+        }
+
+        cambiarEstado(
+            contenidoId,
+            EstadoAprobacion.RECHAZADO,
+            motivo
+        )
     }
 
     // =====================================================================
