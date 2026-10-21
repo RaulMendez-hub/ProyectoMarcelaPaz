@@ -74,7 +74,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.logo_escuela),
+                painter = painterResource(id = R.drawable.logo_escuela_respaldo),
                 contentDescription = "Logo Escuela Escritora Marcela Paz",
                 modifier = Modifier.size(110.dp)
             )

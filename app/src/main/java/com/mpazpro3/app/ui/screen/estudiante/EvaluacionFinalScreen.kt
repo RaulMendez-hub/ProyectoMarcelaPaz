@@ -42,7 +42,6 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
 
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
@@ -81,4 +80,3 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
             ) { Text("Enviar evaluación", style = MaterialTheme.typography.titleMedium) }
         }
     }
-}
