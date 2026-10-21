@@ -51,7 +51,7 @@ object MockData {
             id = "C3", asignatura = Asignatura.CIENCIAS_NATURALES, unidad = "Unidad de ejemplo - Seres vivos",
             objetivoAprendizaje = "Observar y describir necesidades básicas de los seres vivos.",
             codigoOA = "OA (por confirmar)", ejeCurricular = "Ciencias de la vida",
-            recursoReferencia = "Currículum Nacional - 3° básico", estado = EstadoAprobacion.PENDIENTE
+            recursoReferencia = "Currículum Nacional - 3° básico", estado = EstadoAprobacion.APROBADO
         ),
         Contenido(
             id = "C4", asignatura = Asignatura.HISTORIA, unidad = "Unidad de ejemplo - Ubicación espacial",
@@ -89,6 +89,18 @@ object MockData {
             listOf(Alternativa("7", true), Alternativa("5", false), Alternativa("57", false)), Dificultad.MEDIO, orden = 1, esEvaluacionFinal = true),
         Actividad("E2", "C2", "Evaluación final: ¿qué número va entre 199 y 201?",
             listOf(Alternativa("200", true), Alternativa("210", false), Alternativa("190", false)), Dificultad.MEDIO, orden = 2, esEvaluacionFinal = true),
+    )
+    val actividadesLenguaje = listOf(
+        Actividad("A1", "C1", "¿Cuántas sílabas tiene la palabra \"mariposa\"?",
+            listOf(Alternativa("3", false), Alternativa("4", true), Alternativa("5", false)), Dificultad.FACIL, orden = 1),
+        Actividad("A2", "C1", "¿Cuál es el plural de la palabra \"lápiz\"?",
+            listOf(Alternativa("lápizes", false), Alternativa("lápices", true), Alternativa("lápiz's", false)), Dificultad.MEDIO, orden = 2),
+        Actividad("A3", "C1", "¿Qué oración está escrita correctamente?",
+            listOf(Alternativa("el perro ladra fuerte.", false), Alternativa("El perro ladra fuerte.", true), Alternativa("el Perro ladra fuerte", false)), Dificultad.DIFICIL, orden = 3),
+        Actividad("E1", "C1", "Evaluación final: ¿cuál de estas palabras es un sustantivo?",
+            listOf(Alternativa("casa", true), Alternativa("correr", false), Alternativa("rápido", false)), Dificultad.MEDIO, orden = 1, esEvaluacionFinal = true),
+        Actividad("E2", "C1", "Evaluación final: ¿qué palabra completa la oración? \"Los niños ___ en el patio.\"",
+            listOf(Alternativa("juega", false), Alternativa("jugamos", false), Alternativa("juegan", true)), Dificultad.MEDIO, orden = 2, esEvaluacionFinal = true),
     )
 
     /** Ejemplo: el docente ya asignó Matemática (contenido aprobado) a su curso, con 2 intentos. */

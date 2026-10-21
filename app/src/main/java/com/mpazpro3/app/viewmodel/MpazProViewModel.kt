@@ -165,7 +165,7 @@ class MpazProViewModel : ViewModel() {
     fun contenidosFiltrados(asignatura: Asignatura?, estado: EstadoAprobacion?): List<Contenido> =
         _contenidos.value.filter {
             (asignatura == null || it.asignatura == asignatura) &&
-                (estado == null || it.estado == estado)
+                    (estado == null || it.estado == estado)
         }
 
     private fun cambiarEstado(contenidoId: String, estado: EstadoAprobacion, observacion: String) {
@@ -270,7 +270,7 @@ class MpazProViewModel : ViewModel() {
             "Aún no hay respuestas registradas para este estudiante."
         } else {
             "Respondió correctamente $correctas de $total preguntas (${correctas * 100 / total}%) " +
-                "en ${conDatos.size} contenido(s) trabajado(s)."
+                    "en ${conDatos.size} contenido(s) trabajado(s)."
         }
 
         val fortalezas = conDatos
@@ -279,8 +279,8 @@ class MpazProViewModel : ViewModel() {
         val aReforzar = conDatos
             .filter { (_, r) -> r.count { it.esCorrecta } * 100 / r.size < 70 }
             .map { (c, _) -> "Reforzar: ${c.objetivoAprendizaje}" } +
-            asignados.filter { a -> conDatos.none { it.first.id == a.id } }
-                .map { "Aún sin actividades realizadas en: ${it.unidad}" }
+                asignados.filter { a -> conDatos.none { it.first.id == a.id } }
+                    .map { "Aún sin actividades realizadas en: ${it.unidad}" }
 
         val informe = InformeDocente(
             id = "INF-$estudianteId",
