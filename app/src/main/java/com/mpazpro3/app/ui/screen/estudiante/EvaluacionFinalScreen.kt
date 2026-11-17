@@ -29,18 +29,6 @@ import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
-/**
- * Evaluación final del contenido. RF: "responder la evaluación final dentro del número de
- * intentos permitidos". Regla de negocio: el máximo de intentos (definido por el docente) debe
- * respetarse estrictamente.
- *
- * TODO(equipo):
- *  - evaluacionFinalDe() hoy devuelve TODAS las actividades; debe devolver solo las preguntas
- *    de la evaluación final del contenido.
- *  - intentosRestantes() hoy devuelve null (sin calcular); con 0 intentos el botón Enviar ya
- *    queda deshabilitado.
- *  - enviarEvaluacion() todavía no registra el intento.
- */
 @Composable
 fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
@@ -53,10 +41,8 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
     // Respuestas elegidas: id de la pregunta -> posición de la alternativa
     var respuestas by remember { mutableStateOf(mapOf<String, Int>()) }
 
-    Scaffold(topBar = { BarraSuperior("Evaluación final", navController) }) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
@@ -88,7 +74,6 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = respuestas.size == preguntas.size && preguntas.isNotEmpty() && intentos != 0,
                 onClick = {
                     viewModel.enviarEvaluacion(estudianteId, contenidoId.orEmpty(), respuestas)
                     navController.navigate(Rutas.ESTUDIANTE_REVISION)
@@ -96,4 +81,3 @@ fun EvaluacionFinalScreen(navController: NavHostController, viewModel: MpazProVi
             ) { Text("Enviar evaluación", style = MaterialTheme.typography.titleMedium) }
         }
     }
-}

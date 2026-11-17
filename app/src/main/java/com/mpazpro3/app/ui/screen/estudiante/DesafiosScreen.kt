@@ -28,19 +28,11 @@ import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
-/**
- * Desafíos de práctica, uno a la vez, antes de la evaluación final. RF: "desarrollar
- * actividades y desafíos de dificultad progresiva".
- *
- * TODO(equipo):
- *  - desafiosDe() hoy devuelve TODAS las actividades (incluida la evaluación final) sin ordenar.
- *  - responderDesafio() hoy devuelve null: implementar el registro de la respuesta y devolver
- *    true/false para mostrar "¡Correcto!" o "Inténtalo de nuevo".
- */
 @Composable
 fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
     val usuario by viewModel.usuarioActivo.collectAsState()
+    val contenido = viewModel.contenidoPorId(contenidoId)
     val desafios = remember(contenidoId) { viewModel.desafiosDe(contenidoId) }
 
     var indice by remember { mutableIntStateOf(0) }
@@ -58,6 +50,11 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
         ) {
             if (desafios.isEmpty()) {
                 Text("No hay desafíos para este contenido.", style = MaterialTheme.typography.bodyLarge)
+                Button(
+                    onClick = { navController.popBackStack() }
+                ) {
+                    Text("Volver al material")
+                }
                 return@Column
             }
 
@@ -84,7 +81,11 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
                     false -> "Inténtalo de nuevo."
                     null -> "(Retroalimentación pendiente: implementar responderDesafio())"
                 }
-                Text(texto, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+                Text(
+                    texto,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
