@@ -1,5 +1,10 @@
 package com.mpazpro3.app.ui.screen.estudiante
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -21,13 +31,21 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.mpazpro3.app.R
 import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
+/**
+ * Desafíos de práctica, uno a la vez, antes de la evaluación final. RF: "desarrollar
+ * actividades y desafíos de dificultad progresiva". La retroalimentación aparece con una
+ * animación cada vez que el estudiante responde.
+ */
 @Composable
 fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel) {
     val contenidoId by viewModel.contenidoSeleccionadoId.collectAsState()
@@ -39,7 +57,7 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
     var resultado by remember { mutableStateOf<Boolean?>(null) }
     var respondido by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { BarraSuperior("Desafíos", navController) }) { padding ->
+    Scaffold(topBar = { BarraSuperior(contenido?.asignatura?.etiqueta ?: "Desafíos", navController) }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -49,18 +67,38 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (desafios.isEmpty()) {
-                Text("No hay desafíos para este contenido.", style = MaterialTheme.typography.bodyLarge)
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = contenido?.unidad ?: stringResource(R.string.estado_vacio_titulo),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            text = stringResource(R.string.estado_vacio_desafios),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
                 Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     onClick = { navController.popBackStack() }
                 ) {
-                    Text("Volver al material")
+                    Text(stringResource(R.string.accion_volver_material), style = MaterialTheme.typography.titleMedium)
                 }
                 return@Column
             }
 
             val actual = desafios[indice.coerceIn(0, desafios.lastIndex)]
 
-            Text("Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}", style = MaterialTheme.typography.labelLarge)
+            Text(
+                "Desafío ${indice + 1} de ${desafios.size} · ${actual.dificultad.etiqueta}",
+                style = MaterialTheme.typography.labelLarge
+            )
             Text(actual.enunciado, style = MaterialTheme.typography.headlineSmall)
 
             actual.alternativas.forEachIndexed { posicion, alternativa ->
@@ -75,17 +113,48 @@ fun DesafiosScreen(navController: NavHostController, viewModel: MpazProViewModel
                 ) { Text(alternativa.texto, style = MaterialTheme.typography.titleMedium) }
             }
 
-            if (respondido) {
-                val texto = when (resultado) {
-                    true -> "¡Correcto!"
-                    false -> "Inténtalo de nuevo."
-                    null -> "(Retroalimentación pendiente: implementar responderDesafio())"
+            AnimatedVisibility(
+                visible = respondido,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    when (resultado) {
+                        true -> {
+                            Icon(
+                                imageVector = Icons.Filled.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                "¡Correcto!",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        false -> {
+                            Icon(
+                                imageVector = Icons.Filled.Cancel,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                "Inténtalo de nuevo.",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        null -> Text(
+                            "No se pudo registrar la respuesta.",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
-                Text(
-                    texto,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {

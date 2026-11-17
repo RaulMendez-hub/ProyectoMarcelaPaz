@@ -39,6 +39,26 @@ class MpazProViewModel : ViewModel() {
     private val _errorLogin = MutableStateFlow<String?>(null)
     val errorLogin: StateFlow<String?> = _errorLogin.asStateFlow()
 
+    // =====================================================================
+    // Mensajes de reglas de negocio
+    // =====================================================================
+
+    /**
+     * Última regla de negocio que se quiso aplicar y no se pudo (o que sí se aplicó).
+     * La pantalla la muestra como Snackbar y luego llama a [mensajeReglaMostrado].
+     */
+    private val _mensajeRegla = MutableStateFlow<MensajeRegla?>(null)
+    val mensajeRegla: StateFlow<MensajeRegla?> = _mensajeRegla.asStateFlow()
+
+    /** La pantalla confirma que ya mostró el mensaje para que no se repita al recomponer. */
+    fun mensajeReglaMostrado() {
+        _mensajeRegla.value = null
+    }
+
+    private fun avisar(mensaje: MensajeRegla) {
+        _mensajeRegla.value = mensaje
+    }
+
     /** Valida usuario y clave contra MockData.usuarios (el usuario no distingue mayúsculas). */
     fun login(usuario: String, clave: String): Boolean {
         _errorLogin.value = null
@@ -67,6 +87,7 @@ class MpazProViewModel : ViewModel() {
     fun logout() {
         _usuarioActivo.value = null
         _errorLogin.value = null
+        _mensajeRegla.value = null
         _contenidoSeleccionadoId.value = null
         _estudianteSeleccionadoId.value = null
     }
@@ -214,14 +235,35 @@ class MpazProViewModel : ViewModel() {
      * Asigna contenidos al curso con el máximo de intentos de la evaluación final.
      * Si el contenido ya estaba asignado al curso, se actualiza el máximo de intentos
      * (no se duplica). Si alguno no está aprobado, no se asigna ninguno.
+     *
+     * Reglas de negocio validadas AQUÍ (capa ViewModel), no en la pantalla:
+     * curso obligatorio, al menos un contenido y máximo de intentos >= 1.
+     * @return true si la asignación se guardó; false si alguna regla no se cumplió.
      */
-    fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int) {
+    fun asignarAlCurso(curso: String, contenidoIds: List<String>, maxIntentos: Int): Boolean {
+        if (curso.isBlank()) {
+            avisar(MensajeRegla.CURSO_VACIO)
+            return false
+        }
+        if (contenidoIds.isEmpty()) {
+            avisar(MensajeRegla.SIN_CONTENIDOS)
+            return false
+        }
+        if (maxIntentos < 1) {
+            avisar(MensajeRegla.INTENTOS_INVALIDOS)
+            return false
+        }
+
+        val idsUnicos = contenidoIds.distinct()
         val aprobados = _contenidos.value
-            .filter { it.id in contenidoIds && it.estado == EstadoAprobacion.APROBADO }
-        if (aprobados.size != contenidoIds.distinct().size) return // hay contenidos no autorizados
+            .filter { it.id in idsUnicos && it.estado == EstadoAprobacion.APROBADO }
+        if (aprobados.size != idsUnicos.size) {
+            avisar(MensajeRegla.CONTENIDOS_NO_AUTORIZADOS)
+            return false // hay contenidos no autorizados: no se asigna ninguno
+        }
 
         _asignaciones.update { actuales ->
-            val sinRepetidos = actuales.filterNot { it.curso == curso && it.contenidoId in contenidoIds }
+            val sinRepetidos = actuales.filterNot { it.curso == curso && it.contenidoId in idsUnicos }
             sinRepetidos + aprobados.map {
                 Asignacion(
                     id = "AS-$curso-${it.id}",
@@ -231,6 +273,8 @@ class MpazProViewModel : ViewModel() {
                 )
             }
         }
+        avisar(MensajeRegla.ASIGNACION_REGISTRADA)
+        return true
     }
 
     fun asignacionesDelCurso(curso: String): List<Asignacion> =
@@ -387,13 +431,28 @@ class MpazProViewModel : ViewModel() {
 
     /**
      * Registra un nuevo intento de la evaluación final, solo si quedan intentos y se
-     * respondieron todas las preguntas.
+     * respondieron todas las preguntas. Las reglas se validan en el ViewModel y el
+     * resultado se comunica a la pantalla mediante [mensajeRegla].
      * @param respuestas mapa idActividad -> índice de la alternativa elegida.
+     * @return true si el intento quedó registrado; false si no se pudo enviar.
      */
-    fun enviarEvaluacion(estudianteId: String, contenidoId: String, respuestas: Map<String, Int>) {
-        if ((intentosRestantes(estudianteId, contenidoId) ?: 0) <= 0) return
+    fun enviarEvaluacion(estudianteId: String, contenidoId: String, respuestas: Map<String, Int>): Boolean {
+        if ((intentosRestantes(estudianteId, contenidoId) ?: 0) <= 0) {
+            avisar(MensajeRegla.INTENTOS_AGOTADOS)
+            return false
+        }
         val preguntas = evaluacionFinalDe(contenidoId)
-        if (preguntas.isEmpty() || preguntas.any { it.id !in respuestas }) return
+        if (preguntas.isEmpty()) {
+            avisar(MensajeRegla.SIN_PREGUNTAS)
+            return false
+        }
+        val respondidasTodas = preguntas.all { p ->
+            respuestas[p.id]?.let { it in p.alternativas.indices } == true
+        }
+        if (!respondidasTodas) {
+            avisar(MensajeRegla.RESPUESTAS_INCOMPLETAS)
+            return false
+        }
 
         actualizarSeguimiento(estudianteId, contenidoId) { seg ->
             val intento = seg.intentosEvaluacionUsados + 1
@@ -407,6 +466,7 @@ class MpazProViewModel : ViewModel() {
                 estado = EstadoAvance.FINALIZADO
             )
         }
+        return true
     }
 
     /**
