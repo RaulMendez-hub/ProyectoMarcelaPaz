@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Textos de validación por campo y de reglas de negocio.
+    Se mantienen separados de strings.xml para que la interfaz no repita literales
+    y para poder traducirlos o corregirlos sin tocar el código Kotlin.
+-->
+<resources>
+    <!-- Validación por campo: Login -->
+    <string name="validacion_usuario_vacio">Ingresa tu usuario o correo.</string>
+    <string name="validacion_usuario_corto">El usuario debe tener al menos 3 caracteres.</string>
+    <string name="validacion_clave_vacia">Ingresa tu clave.</string>
+    <string name="validacion_clave_corta">La clave debe tener al menos 4 caracteres.</string>
+    <string name="validacion_campo_ok">Campo válido</string>
+    <string name="validacion_campo_error">Revisa este campo</string>
+
+    <!-- Validación por campo: observación de UTP -->
+    <string name="validacion_observacion_vacia">Escribe el motivo antes de rechazar.</string>
+    <string name="validacion_observacion_ok">Observación registrada correctamente.</string>
+
+    <!-- Reglas de negocio: planificación docente -->
+    <string name="regla_curso_vacio">No se pudo asignar: el curso está vacío.</string>
+    <string name="regla_sin_contenidos">Selecciona al menos un contenido para asignar.</string>
+    <string name="regla_intentos_invalidos">El máximo de intentos debe ser 1 o más.</string>
+    <string name="regla_contenido_no_autorizado">Hay contenidos no autorizados por UTP: no se asignó ninguno.</string>
+    <string name="regla_asignacion_ok">Contenidos asignados al curso correctamente.</string>
+    <string name="regla_lista_vacia">No hay contenidos aprobados por UTP para asignar.</string>
+    <string name="regla_intentos_ok">Máximo de intentos válido.</string>
+
+    <!-- Reglas de negocio: evaluación final -->
+    <string name="regla_intentos_agotados">Ya no te quedan intentos para esta evaluación final.</string>
+    <string name="regla_sin_preguntas">La evaluación final todavía no tiene preguntas.</string>
+    <string name="regla_respuestas_incompletas">Responde todas las preguntas antes de enviar.</string>
+
+    <!-- Estados vacíos de las pantallas del estudiante -->
+    <string name="estado_vacio_material">Todavía no hay material para esta asignatura.</string>
+    <string name="estado_vacio_desafios">Todavía no hay desafíos para esta asignatura.</string>
+    <string name="estado_vacio_evaluacion">Todavía no hay evaluación final para esta asignatura.</string>
+    <string name="estado_vacio_titulo">Sin contenido seleccionado</string>
+    <string name="accion_volver_material">Volver al material</string>
+    <string name="accion_volver_desafios">Volver a desafíos</string>
+</resources>

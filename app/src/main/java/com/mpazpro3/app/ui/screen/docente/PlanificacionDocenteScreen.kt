@@ -89,7 +89,7 @@ fun PlanificacionDocenteScreen(navController: NavHostController, viewModel: Mpaz
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedButton(onClick = { if (maxIntentos > 1) maxIntentos-- }) { Text("−") }
                 Text("$maxIntentos", style = MaterialTheme.typography.headlineSmall)
-                OutlinedButton(onClick = { if (maxIntentos < 10) maxIntentos++ }) { Text("+") }
+                OutlinedButton(onClick = { if (maxIntentos < 3) maxIntentos++ }) { Text("+") }
             }
 
             mensaje?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
@@ -99,7 +99,7 @@ fun PlanificacionDocenteScreen(navController: NavHostController, viewModel: Mpaz
                 enabled = seleccionados.isNotEmpty(),
                 onClick = {
                     viewModel.asignarAlCurso(usuario?.curso.orEmpty(), seleccionados.toList(), maxIntentos)
-                    mensaje = "Asignación enviada (se verá en el panel cuando asignarAlCurso() esté implementada)."
+                    mensaje = "Asignación enviada."
                     seleccionados = emptySet()
                 }
             ) { Text("3. Asignar a mi curso") }

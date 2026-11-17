@@ -49,6 +49,7 @@ fun PanelDocenteScreen(
             Text("Hola, ${usuario?.nombre.orEmpty()}", style = MaterialTheme.typography.titleLarge)
             Text("Curso: $curso", style = MaterialTheme.typography.bodyMedium)
 
+
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Contenidos asignados a tu curso: ${asignaciones.size}", style = MaterialTheme.typography.titleSmall)

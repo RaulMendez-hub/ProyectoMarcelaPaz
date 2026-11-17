@@ -47,6 +47,13 @@ fun DetalleContenidoUtpScreen(navController: NavHostController, viewModel: MpazP
         }
         val recursos = viewModel.recursosDe(contenido.id)
         var observacion by remember(contenido.id) { mutableStateOf(contenido.observacionUtp) }
+        var errorRechazo by remember(contenido.id) {
+            mutableStateOf(false)
+        }
+
+        var mensajeConfirmacion by remember(contenido.id) {
+            mutableStateOf("")
+        }
 
         Column(
             modifier = Modifier
@@ -81,31 +88,84 @@ fun DetalleContenidoUtpScreen(navController: NavHostController, viewModel: MpazP
                         Text(
                             if (recurso.audioDisponible) "Incluye audio de apoyo" else "Sin audio de apoyo",
                             style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                       )
+                     }
                 }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+
             OutlinedTextField(
                 value = observacion,
-                onValueChange = { observacion = it },
+                onValueChange = {
+                    observacion = it
+                    errorRechazo = false
+                    mensajeConfirmacion = ""
+                },
                 label = { Text("Observación de UTP") },
                 minLines = 2,
+                isError = errorRechazo,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+// Mostrar error cuando no se escribe el motivo
+            if (errorRechazo) {
+                Text(
+                    text = "Indica el motivo del rechazo",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+// Mostrar confirmación
+            if (mensajeConfirmacion.isNotEmpty()) {
+                Text(
+                    text = mensajeConfirmacion,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
                 Button(
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.aprobarContenido(contenido.id, observacion.trim()) }
-                ) { Text("Aprobar") }
+                    onClick = {
+                        viewModel.aprobarContenido(
+                            contenido.id,
+                            observacion
+                        )
+
+                        errorRechazo = false
+                        mensajeConfirmacion = "Contenido aprobado correctamente"
+                    }
+                ) {
+                    Text("Aprobar")
+                }
+
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.rechazarContenido(contenido.id, observacion.trim()) }
-                ) { Text("Rechazar") }
+                    onClick = {
+                        if (observacion.isBlank()) {
+                            errorRechazo = true
+                            mensajeConfirmacion = ""
+                        } else {
+                            viewModel.rechazarContenido(
+                                contenido.id,
+                                observacion
+                            )
+
+                            errorRechazo = false
+                            mensajeConfirmacion = "Contenido rechazado correctamente"
+                        }
+                    }
+                ) {
+                    Text("Rechazar")
+                }
             }
+
         }
     }
 }

@@ -40,6 +40,8 @@ fun InicioEstudianteScreen(
 ) {
     val usuario by viewModel.usuarioActivo.collectAsState()
     val todos by viewModel.contenidos.collectAsState()
+    val asignaciones by viewModel.asignaciones.collectAsState()
+    val seguimientos by viewModel.seguimientos.collectAsState() // recompone al cambiar el avance
     val misContenidos = viewModel.contenidosDelEstudiante(usuario)
     val estudianteId = usuario?.id.orEmpty()
 

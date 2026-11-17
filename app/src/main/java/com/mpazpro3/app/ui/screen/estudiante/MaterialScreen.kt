@@ -22,8 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.mpazpro3.app.R
 import com.mpazpro3.app.navigation.Rutas
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
@@ -48,14 +50,14 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = contenido?.unidad ?: "Material de estudio",
+                            text = contenido?.unidad ?: stringResource(R.string.estado_vacio_titulo),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Text(
-                            text = contenido?.asignatura?.etiqueta ?: "Información no disponible.",
+                            text = stringResource(R.string.estado_vacio_material),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -81,7 +83,10 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(recurso.descripcionImagen, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        recurso.descripcionImagen,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                             }
 
@@ -100,7 +105,6 @@ fun MaterialScreen(navController: NavHostController, viewModel: MpazProViewModel
                     }
                 }
             }
-
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
