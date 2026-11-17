@@ -1,5 +1,7 @@
 package com.mpazpro3.app.ui.screen.estudiante
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,11 +63,16 @@ fun InicioEstudianteScreen(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(misContenidos) { contenido ->
                     val avance = viewModel.progreso(estudianteId, contenido.id)
+                    val avanceAnimado by animateFloatAsState(
+                        targetValue = avance,
+                        animationSpec = tween(durationMillis = 600),
+                        label = "avanceContenido"
+                    )
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(contenido.asignatura.etiqueta, style = MaterialTheme.typography.headlineSmall)
                             Text(contenido.unidad, style = MaterialTheme.typography.bodyLarge)
-                            LinearProgressIndicator(progress = { avance }, modifier = Modifier.fillMaxWidth())
+                            LinearProgressIndicator(progress = { avanceAnimado }, modifier = Modifier.fillMaxWidth())
                             Button(
                                 modifier = Modifier
                                     .fillMaxWidth()

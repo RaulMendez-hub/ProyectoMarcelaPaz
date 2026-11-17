@@ -1,5 +1,10 @@
 package com.mpazpro3.app.ui.screen.utp
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,9 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -22,9 +31,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.mpazpro3.app.R
 import com.mpazpro3.app.ui.components.BarraSuperior
 import com.mpazpro3.app.viewmodel.MpazProViewModel
 
@@ -106,23 +118,47 @@ fun DetalleContenidoUtpScreen(navController: NavHostController, viewModel: MpazP
                 label = { Text("Observación de UTP") },
                 minLines = 2,
                 isError = errorRechazo,
+                supportingText = {
+                    if (errorRechazo) Text(stringResource(R.string.validacion_observacion_vacia))
+                },
+                trailingIcon = {
+                    if (errorRechazo) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = stringResource(R.string.validacion_campo_error),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    } else if (observacion.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = stringResource(R.string.validacion_campo_ok),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
-// Mostrar error cuando no se escribe el motivo
-            if (errorRechazo) {
-                Text(
-                    text = "Indica el motivo del rechazo",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-// Mostrar confirmación
-            if (mensajeConfirmacion.isNotEmpty()) {
-                Text(
-                    text = mensajeConfirmacion,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            AnimatedVisibility(
+                visible = mensajeConfirmacion.isNotEmpty(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = mensajeConfirmacion,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             Row(
